@@ -17,8 +17,11 @@ struct Add: ParsableCommand {
     @Option(name: .long, help: "Additional notes for the reminder.")
     var notes: String?
 
-    @Option(name: .long, help: "Due date in ISO 8601 format (e.g. 2026-05-10T09:00:00Z).")
-    var due: String?
+    @Option(name: .long, help: "Due date: today, tomorrow, monday–sunday, YYYY-MM-DD, or natural date like \"March 5\".")
+    var date: String?
+
+    @Option(name: .long, help: "Due time in HH:mm format (e.g. 09:30, 14:00). Defaults to today if --date is omitted.")
+    var time: String?
 
     @Option(name: .long, help: "Name of the Reminders list to add into (uses default if omitted).")
     var list: String?
@@ -38,7 +41,14 @@ struct Add: ParsableCommand {
             Foundation.exit(error.exitCode)
         }
 
-        let dueDate = try parseDueDate(due, output: output)
+        let dueDate: Date?
+        do {
+            let parser = DateParser()
+            dueDate = try parser.combine(dateString: date, timeString: time)
+        } catch let error as CLIError {
+            output.writeError(error.message)
+            Foundation.exit(error.exitCode)
+        }
 
         do {
             let reminder = try store.add(
@@ -64,20 +74,6 @@ struct Add: ParsableCommand {
     }
 
     // MARK: - Helpers
-
-    private func parseDueDate(_ raw: String?, output: CLIOutput) throws -> Date? {
-        guard let raw else { return nil }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: raw) { return date }
-
-        // Fallback: without fractional seconds
-        formatter.formatOptions = [.withInternetDateTime]
-        if let date = formatter.date(from: raw) { return date }
-
-        output.writeError("Usage error: Cannot parse due date '\(raw)'. Use ISO 8601 format, e.g. 2026-05-10T09:00:00Z")
-        Foundation.exit(64)
-    }
 
     private func formatDate(_ date: Date) -> String {
         let fmt = DateFormatter()
