@@ -64,6 +64,49 @@ struct DateParser {
         return (hour, minute)
     }
 
+    /// Parse a free-form `--due` string into `DateComponents`.
+    ///
+    /// Accepts strings like "today", "tomorrow 9:00", "monday 14:30", "2026-05-10", etc.
+    /// A trailing `H:mm` or `HH:mm` is extracted as the time; the remainder is parsed as the date.
+    /// When no time is present only year/month/day components are set (date-only reminder).
+    func parseDue(_ raw: String) throws -> DateComponents {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+
+        // Detect trailing time pattern: optional whitespace then H:mm or HH:mm at end
+        let timePattern = #"\s+(\d{1,2}):(\d{2})\s*$"#
+        if let regex = try? NSRegularExpression(pattern: timePattern),
+           let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)),
+           let matchRange = Range(match.range, in: trimmed) {
+
+            let timeStr = String(trimmed[matchRange]).trimmingCharacters(in: .whitespaces)
+            let dateStr = String(trimmed[..<matchRange.lowerBound]).trimmingCharacters(in: .whitespaces)
+
+            let baseDate: Date = dateStr.isEmpty
+                ? calendar.startOfDay(for: now)
+                : try parseDate(dateStr)
+
+            let (hour, minute) = try parseTime(timeStr)
+            var comps = calendar.dateComponents([.year, .month, .day], from: baseDate)
+            comps.hour = hour
+            comps.minute = minute
+            comps.second = 0
+            return comps
+        }
+
+        // No time keyword or explicit time — try parseDate which uses NSDataDetector as fallback.
+        // Preserve time components if NSDataDetector detected them (non-midnight result).
+        let baseDate = try parseDate(trimmed)
+        let hour = calendar.component(.hour, from: baseDate)
+        let minute = calendar.component(.minute, from: baseDate)
+        var comps = calendar.dateComponents([.year, .month, .day], from: baseDate)
+        if hour != 0 || minute != 0 {
+            comps.hour = hour
+            comps.minute = minute
+            comps.second = 0
+        }
+        return comps
+    }
+
     /// Combine a date and optional time into a single `Date`.
     /// - If only date: returns start of that day.
     /// - If only time: returns today at that time.

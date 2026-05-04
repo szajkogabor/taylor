@@ -17,11 +17,8 @@ struct Add: ParsableCommand {
     @Option(name: .long, help: "Additional notes for the reminder.")
     var notes: String?
 
-    @Option(name: .long, help: "Due date: today, tomorrow, monday–sunday, YYYY-MM-DD, or natural date like \"March 5\".")
-    var date: String?
-
-    @Option(name: .long, help: "Due time in HH:mm format (e.g. 09:30, 14:00). Defaults to today if --date is omitted.")
-    var time: String?
+    @Option(name: .long, help: "Due date/time: \"today\", \"tomorrow\", \"monday 9:00\", \"2026-05-10 14:30\", etc.")
+    var due: String?
 
     @Option(name: .long, help: "Name of the Reminders list to add into (uses default if omitted).")
     var list: String?
@@ -41,10 +38,14 @@ struct Add: ParsableCommand {
             Foundation.exit(error.exitCode)
         }
 
-        let dueDate: Date?
+        let dueComponents: DateComponents?
         do {
-            let parser = DateParser()
-            dueDate = try parser.combine(dateString: date, timeString: time)
+            if let due {
+                let parser = DateParser()
+                dueComponents = try parser.parseDue(due)
+            } else {
+                dueComponents = nil
+            }
         } catch let error as CLIError {
             output.writeError(error.message)
             Foundation.exit(error.exitCode)
@@ -54,14 +55,15 @@ struct Add: ParsableCommand {
             let reminder = try store.add(
                 title: title,
                 notes: notes,
-                dueDate: dueDate,
+                dueComponents: dueComponents,
                 listName: list
             )
             output.write("✓ Reminder added.")
             output.write("  ID:    \(reminder.id)")
             output.write("  Title: \(reminder.title)")
             if let due = reminder.dueDate {
-                output.write("  Due:   \(formatDate(due))")
+                let includesTime = dueComponents?.hour != nil
+                output.write("  Due:   \(formatDate(due, includesTime: includesTime))")
             }
             output.write("  List:  \(reminder.listName)")
         } catch let error as CLIError {
@@ -75,10 +77,10 @@ struct Add: ParsableCommand {
 
     // MARK: - Helpers
 
-    private func formatDate(_ date: Date) -> String {
+    private func formatDate(_ date: Date, includesTime: Bool = true) -> String {
         let fmt = DateFormatter()
         fmt.dateStyle = .medium
-        fmt.timeStyle = .short
+        fmt.timeStyle = includesTime ? .short : .none
         return fmt.string(from: date)
     }
 }

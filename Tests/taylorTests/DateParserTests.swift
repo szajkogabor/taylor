@@ -150,4 +150,63 @@ final class DateParserTests: XCTestCase {
         let date = try makeParser().combine(dateString: nil, timeString: nil)
         XCTAssertNil(date)
     }
+
+    // MARK: - parseDue
+
+    func testParseDueDateOnly() throws {
+        let comps = try makeParser().parseDue("tomorrow")
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 5)
+        XCTAssertEqual(comps.day, 5)
+        XCTAssertNil(comps.hour)
+        XCTAssertNil(comps.minute)
+    }
+
+    func testParseDueDateAndTime() throws {
+        let comps = try makeParser().parseDue("tomorrow 14:30")
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 5)
+        XCTAssertEqual(comps.day, 5)
+        XCTAssertEqual(comps.hour, 14)
+        XCTAssertEqual(comps.minute, 30)
+    }
+
+    func testParseDueTodayAtTime() throws {
+        let comps = try makeParser().parseDue("today 9:00")
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 5)
+        XCTAssertEqual(comps.day, 4)
+        XCTAssertEqual(comps.hour, 9)
+        XCTAssertEqual(comps.minute, 0)
+    }
+
+    func testParseDueWeekdayWithTime() throws {
+        // May 4 2026 is Monday. "friday" = May 8.
+        let comps = try makeParser().parseDue("friday 9:30")
+        XCTAssertEqual(comps.day, 8)
+        XCTAssertEqual(comps.hour, 9)
+        XCTAssertEqual(comps.minute, 30)
+    }
+
+    func testParseDueISOWithTime() throws {
+        let comps = try makeParser().parseDue("2026-12-25 18:00")
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 12)
+        XCTAssertEqual(comps.day, 25)
+        XCTAssertEqual(comps.hour, 18)
+        XCTAssertEqual(comps.minute, 0)
+    }
+
+    func testParseDueNaturalLanguageAfternoon() throws {
+        // NSDataDetector resolves "tomorrow afternoon" to a time — should preserve hour/minute
+        let comps = try makeParser().parseDue("tomorrow afternoon")
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 5)
+        XCTAssertEqual(comps.day, 5)
+        XCTAssertNotNil(comps.hour)
+    }
+
+    func testParseDueInvalidThrows() {
+        XCTAssertThrowsError(try makeParser().parseDue("not-a-date"))
+    }
 }
