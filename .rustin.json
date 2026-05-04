@@ -9,9 +9,20 @@
       "priority": "medium",
       "kind": "feature",
       "description": "it should be replaced with date, time args, date should be able to parse today, tomorrow, monday, thuesday, etc., time should be hour:minute format",
-      "status": "todo",
+      "status": "done",
       "created_at": "2026-05-04T10:12:33.416054Z",
-      "transitions": [],
+      "transitions": [
+        {
+          "from": "todo",
+          "to": "in-progress",
+          "at": "2026-05-04T10:53:30.486328Z"
+        },
+        {
+          "from": "in-progress",
+          "to": "done",
+          "at": "2026-05-04T10:57:37.738819Z"
+        }
+      ],
       "deleted_at": null
     }
   ]
