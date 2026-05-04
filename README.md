@@ -8,7 +8,7 @@ It is designed to feel like a fast terminal-native workflow while storing remind
 
 This project is in active development.
 
-- The CLI contract is being finalized around: `add`, `remove`, `list`, `help`, `version`, and `author`.
+- The CLI contract currently includes: `add`, `remove`, `list`, `tui`, `help`, `version`, and `author`.
 - EventKit-backed reminder operations are the current foundation.
 - Behavior documented here is the intended public contract for Phase 1.
 
@@ -32,6 +32,7 @@ Core commands:
 - `add <title> [--notes <text>] [--due <iso8601>] [--list <name>]`
 - `remove <id>`
 - `list [--list <name>] [--all]`
+- `tui [--list <name>] [--all]`
 - `help [command]`
 - `version`
 - `author`
@@ -49,6 +50,9 @@ taylor list
 
 # List reminders from a specific reminders list/calendar
 taylor list --list Personal
+
+# Open the interactive terminal dashboard
+taylor tui
 
 # Remove by identifier
 taylor remove <id>
@@ -98,7 +102,32 @@ This contract is intended for both user readability and script stability.
 
 ## Development
 
-This repository currently contains an Xcode project (`taylor.xcodeproj`).
+This repository supports both Swift Package Manager and Xcode.
+
+### Swift Package Manager
+
+`taylor` uses:
+
+- `swift-argument-parser` for CLI parsing
+- `SwiftTUI` for the `tui` command
+
+Build and run using SPM:
+
+```bash
+swift build
+swift run taylor --help
+swift run taylor tui
+```
+
+Resolve package dependencies explicitly:
+
+```bash
+swift package resolve
+```
+
+### Xcode
+
+The project also contains `taylor.xcodeproj`.
 
 Typical local development flow:
 

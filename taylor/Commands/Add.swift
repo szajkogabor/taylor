@@ -24,15 +24,15 @@ struct Add: ParsableCommand {
     var list: String?
 
     func run() throws {
-        try runAsyncAndWait { try await self.execute() }
+        try execute()
     }
 
-    private func execute() async throws {
+    private func execute() throws {
         let output = StandardOutput()
         let store = EventKitReminderStore()
 
         do {
-            try await store.requestAccess()
+            try store.requestAccess()
         } catch let error as CLIError {
             output.writeError(error.message)
             Foundation.exit(error.exitCode)
@@ -41,7 +41,7 @@ struct Add: ParsableCommand {
         let dueDate = try parseDueDate(due, output: output)
 
         do {
-            let reminder = try await store.add(
+            let reminder = try store.add(
                 title: title,
                 notes: notes,
                 dueDate: dueDate,

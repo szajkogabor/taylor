@@ -9,7 +9,7 @@ import Foundation
 /// with a fake implementation.
 protocol ReminderStore {
     /// Request authorization. Throws CLIError.permissionDenied if access is not granted.
-    func requestAccess() async throws
+    func requestAccess() throws
 
     /// Create a new reminder and return the saved item.
     func add(
@@ -17,10 +17,10 @@ protocol ReminderStore {
         notes: String?,
         dueDate: Date?,
         listName: String?
-    ) async throws -> ReminderItem
+    ) throws -> ReminderItem
 
     /// Permanently delete the reminder with the given identifier.
-    func remove(id: String) async throws
+    func remove(id: String) throws
 
     /// Fetch reminders, optionally filtered to a specific list.
     /// - Parameters:
@@ -29,13 +29,13 @@ protocol ReminderStore {
     func list(
         listName: String?,
         includeCompleted: Bool
-    ) async throws -> [ReminderItem]
+    ) throws -> [ReminderItem]
 }
 
 extension ReminderStore {
     // Convenience default: exclude completed reminders.
-    func list(listName: String? = nil) async throws -> [ReminderItem] {
-        try await list(listName: listName, includeCompleted: false)
+    func list(listName: String? = nil) throws -> [ReminderItem] {
+        try list(listName: listName, includeCompleted: false)
     }
 }
 
