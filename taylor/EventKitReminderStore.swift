@@ -58,20 +58,13 @@ final class EventKitReminderStore: ReminderStore {
     func add(
         title: String,
         notes: String?,
-        dueDate: Date?,
+        dueComponents: DateComponents?,
         listName: String?
     ) throws -> ReminderItem {
         let reminder = EKReminder(eventStore: store)
         reminder.title = title
         reminder.notes = notes
-
-        if let dueDate {
-            reminder.dueDateComponents = Calendar.current.dateComponents(
-                [.year, .month, .day, .hour, .minute, .second],
-                from: dueDate
-            )
-        }
-
+        reminder.dueDateComponents = dueComponents
         reminder.calendar = try calendar(named: listName)
 
         do {
@@ -80,6 +73,7 @@ final class EventKitReminderStore: ReminderStore {
             throw CLIError.cannotCreate(error.localizedDescription)
         }
 
+        let dueDate = dueComponents.flatMap { Calendar.current.date(from: $0) }
         return ReminderItem(
             id: reminder.calendarItemIdentifier,
             title: reminder.title ?? "",

@@ -15,7 +15,7 @@ protocol ReminderStore {
     func add(
         title: String,
         notes: String?,
-        dueDate: Date?,
+        dueComponents: DateComponents?,
         listName: String?
     ) throws -> ReminderItem
 
