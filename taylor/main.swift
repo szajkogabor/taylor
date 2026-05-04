@@ -24,6 +24,7 @@ struct Taylor: ParsableCommand {
             Add.self,
             Remove.self,
             List.self,
+            TUI.self,
             Author.self,
         ],
         defaultSubcommand: List.self

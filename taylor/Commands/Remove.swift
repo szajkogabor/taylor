@@ -15,22 +15,22 @@ struct Remove: ParsableCommand {
     var id: String
 
     func run() throws {
-        try runAsyncAndWait { try await self.execute() }
+        try execute()
     }
 
-    private func execute() async throws {
+    private func execute() throws {
         let output = StandardOutput()
         let store = EventKitReminderStore()
 
         do {
-            try await store.requestAccess()
+            try store.requestAccess()
         } catch let error as CLIError {
             output.writeError(error.message)
             Foundation.exit(error.exitCode)
         }
 
         do {
-            try await store.remove(id: id)
+            try store.remove(id: id)
             output.write("✓ Reminder removed.")
         } catch let error as CLIError {
             output.writeError(error.message)

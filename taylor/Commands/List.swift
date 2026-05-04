@@ -18,22 +18,22 @@ struct List: ParsableCommand {
     var all: Bool = false
 
     func run() throws {
-        try runAsyncAndWait { try await self.execute() }
+        try execute()
     }
 
-    private func execute() async throws {
+    private func execute() throws {
         let output = StandardOutput()
         let store = EventKitReminderStore()
 
         do {
-            try await store.requestAccess()
+            try store.requestAccess()
         } catch let error as CLIError {
             output.writeError(error.message)
             Foundation.exit(error.exitCode)
         }
 
         do {
-            let reminders = try await store.list(listName: list, includeCompleted: all)
+            let reminders = try store.list(listName: list, includeCompleted: all)
             let sorted = reminders.sortedByDueDateThenTitle()
             render(sorted, output: output)
         } catch let error as CLIError {
